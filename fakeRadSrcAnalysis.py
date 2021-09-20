@@ -42,11 +42,11 @@ def DataCFPlotty(XData, YData, curveFitFunc, fitParams, figTitle, title, xLabel,
 
 
 #Data handling
-dataArray = np.loadtxt("/Users/frankgrijalva/Desktop/School/427/Labs/First 3/Fake rad src/fakeRadSrc.txt", dtype=float, skiprows=3)
+dataArray = np.loadtxt("/fakeRadSrc.txt", dtype=float, skiprows=3)
 ##second data collection run because the first one might be bad
-dataArray1 = np.loadtxt("/Users/frankgrijalva/Desktop/School/427/Labs/First 3/Fake rad src/fakeRadSrc.txt", dtype=float, skiprows=3)
+dataArray1 = np.loadtxt("/fakeRadSrc.txt", dtype=float, skiprows=3)
 ##third data capture because the first 2 were kinda bad
-estebanData = np.loadtxt("/Users/frankgrijalva/Desktop/School/427/Labs/First 3/Fake rad src/half_life_data_1000a.txt", dtype=float, skiprows=3)
+estebanData = np.loadtxt("/half_life_data_1000a.txt", dtype=float, skiprows=3)
 
 #counter normalization to 0 and sample interval correction
 xData = (dataArray[:,0] - dataArray[0,0])/5000
