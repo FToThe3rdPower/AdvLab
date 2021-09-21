@@ -48,7 +48,8 @@ dataArray1 = np.loadtxt("/fakeRadSrc.txt", dtype=float, skiprows=3)
 ##third data capture because the first 2 were kinda bad
 estebanData = np.loadtxt("/half_life_data_1000a.txt", dtype=float, skiprows=3)
 
-#counter normalization to 0 and sample interval correction
+
+#counter normalization to 0 and sample interval correction to sec
 xData = (dataArray[:,0] - dataArray[0,0])/5000
 x1Data = (dataArray1[:,0] - dataArray1[0,0])/5000
 xEstebansData1k = (estebanData[:,0] - estebanData[0,0])/1000
@@ -57,7 +58,7 @@ xEstebansData1k = (estebanData[:,0] - estebanData[0,0])/1000
 smpl1cap1 = dataArray[:,1]
 smpl1cap2 = dataArray1[:,1]
 # smpl2cap1 = dataArray[:80,2]
-smpl2capEst1k = estebanData[:,2]
+smpl2capEst1k = estebanData[:50,2]
 smpl3cap1 = dataArray[:,3]
 smpl3capEst1k = estebanData[:,3]
 smpl4cap1 = dataArray[:,4]
@@ -75,7 +76,7 @@ fit44, covMat44 = spy.curve_fit(XXtraCurvy, x1Data, dataArray1[:,4], p0=(1,-1,1,
 
 
 #esteban dataset fit for comparison
-fit2E, covMat2E = spy.curve_fit(Curvy, xEstebansData1k, smpl2capEst1k, p0=(1,-1,0), method="trf")
+fit2E, covMat2E = spy.curve_fit(Curvy, xEstebansData1k[:50], smpl2capEst1k, p0=(1,-1,0), method="trf")
 fit4E, covMat4E = spy.curve_fit(XtraCurvy, xEstebansData1k, smpl4capEst1k, p0=(1,-1,1,-1,0))
 
 
@@ -150,16 +151,16 @@ smpl4BckErr = np.round(smpl4StdDev[6], 2)
 
 
 #outputting the half life
-print("\n\nElement 1 was initially present at",A0_smpl1, "±", smpl1A0Err, "units with \u03C41/2 =", smpl1HL,"±", smpl1TauErr, "(sec) with", bckgrnd1,"±", smpl1BckErr, "units of background radiation")
-print("\n\nElement 2 from Esteban's data was initially present at",A0_smpl2, "±", smpl2A0err, "units with \u03C41/2 =", smpl2E1kHL,"±", smpl2TauErr, "(sec) with", bckgrnd1,"±", smpl1BckErr, "units of background radiation")
-print("\n\nElement 3a was initially present at", A0_smpl3a, "±", smpl3A0ErrA, "units with \u03C41/2_a:", smpl3HLa, "±", smpl3TauErrA,"(sec)", "\nelement 3b was initially present at",A0_smpl3b, "±", smpl3A0ErrB, "units with \u03C41/2-b:", smpl3HLb, "±", smpl3TauErrB, "(sec) with", bckgrnd3,"±", smpl3BckErr, "units of background radiation")
-print("\n\nElement 4a was initially present at", A0_smpl4a, "±", smpl4A0ErrA, "units with \u03C41/2_a:", smpl4HLa, "±", smpl4TauErrA,"(sec)", "\nelement 4b was initially present at",A0_smpl4b, "±", smpl4A0ErrB,"units with \u03C41/2_b:", smpl4HLb, "±", smpl4TauErrB,"(sec)", "\nelement 4c was initially present at",A0_smpl4c, "±", smpl4A0ErrC, "units with \u03C41/2_c:", smpl4HLc, "±", smpl4TauErrC,"(sec) with", bckgrnd4,"±", smpl4BckErr, "units of background radiation")
+print("\n\nElement 1 was initially",A0_smpl1, "±", smpl1A0Err, "units with \u03C41/2 =", smpl1HL,"±", smpl1TauErr, "(sec) with", bckgrnd1,"±", smpl1BckErr, "units of background radiation")
+print("\n\nElement 2 from Esteban's data was initially",A0_smpl2, "±", smpl2A0err, "units with \u03C41/2 =", smpl2E1kHL,"±", smpl2TauErr, "(sec) with", bckgrnd1,"±", smpl1BckErr, "units of background radiation")
+print("\n\nElement 3a was initially", A0_smpl3a, "±", smpl3A0ErrA, "units with \u03C41/2_a:", smpl3HLa, "±", smpl3TauErrA,"(sec)", "\nelement 3b was initially",A0_smpl3b, "±", smpl3A0ErrB, "units with \u03C41/2-b:", smpl3HLb, "±", smpl3TauErrB, "(sec) with", bckgrnd3,"±", smpl3BckErr, "units of background radiation")
+print("\n\nElement 4a was initially", A0_smpl4a, "±", smpl4A0ErrA, "units with \u03C41/2_a:", smpl4HLa, "±", smpl4TauErrA,"(sec)", "\nelement 4b was initially",A0_smpl4b, "±", smpl4A0ErrB,"units with \u03C41/2_b:", smpl4HLb, "±", smpl4TauErrB,"(sec)", "\nelement 4c was initially",A0_smpl4c, "±", smpl4A0ErrC, "units with \u03C41/2_c:", smpl4HLc, "±", smpl4TauErrC,"(sec) with", bckgrnd4,"±", smpl4BckErr, "units of background radiation")
 
 
 #residuals
 res11 = (Curvy(x1Data, *fit11) - smpl1cap2) / Curvy(x1Data, *fit11)
 
-res2E =(Curvy(xEstebansData1k, *fit2E) - smpl2capEst1k)/Curvy(xEstebansData1k, *fit2E)
+res2E =(Curvy(xEstebansData1k[:50], *fit2E) - smpl2capEst1k)/Curvy(xEstebansData1k[:50], *fit2E)
 
 res3 = (XtraCurvy(xData, *doubleFit) - smpl3cap1) / XtraCurvy(xData, *doubleFit)
 
@@ -182,6 +183,10 @@ DataCFPlotty(x1Data, smpl1cap2, Curvy, fit11, "First sample", "Sample 1 data", "
 
 DataCFPlotty(x1Data, smpl1cap2, Curvy, fit11, "First sample log", "Sample 1 data log", "S", "Count", ".r", "-b", "semilogy")
 
+DataCFPlotty(xEstebansData1k[:50], smpl2capEst1k, Curvy, fit2E, "Esteban 1s sample 2", "Esteban 1k sample 2", "S", "Count", ".k", "-r", "reg")
+
+DataCFPlotty(xEstebansData1k[:50], smpl2capEst1k, Curvy, fit2E, "Esteban 1s sample 2 log", "Esteban 1k sample 2 log", "S", "Count", ".k", "-r", "semilogy")
+
 DataCFPlotty(xData, smpl3cap1, XtraCurvy, doubleFit, "Third sample" , "Sample 3 data", "S", "Count", ".k", "-g", 'reg')
 
 DataCFPlotty(xData, smpl3cap1, XtraCurvy, doubleFit, "Third sample log" , "Sample 3 data log", "S", "Count", ".k", "-g", 'semilogy')
@@ -189,40 +194,32 @@ DataCFPlotty(xData, smpl3cap1, XtraCurvy, doubleFit, "Third sample log" , "Sampl
 DataCFPlotty(xData, smpl4cap1, XXtraCurvy, fit4, "Fourth sample", "Sample 4 data", "S", "Count", ".c", "-k", "reg")
 
 
-#Checking esteban's data
-DataCFPlotty(xEstebansData1k, smpl2capEst1k, Curvy, fit2E, "Esteban 1s sample 2", "Esteban 1k sample 2", "S", "Count", ".k", "-r", "reg")
-
-DataCFPlotty(xEstebansData1k, smpl2capEst1k, Curvy, fit2E, "Esteban 1s sample 2 log", "Esteban 1k sample 2 log", "S", "Count", ".k", "-r", "semilogy")
-
-
-
 
 #residual figs
-plt.figure("smpl1 resi")
-plt.title("Sample 1 residuals")
-plt.plot(res11, ".r", label='run 1')
-plt.xlabel("Data point")
+plt.figure("smpl1 resi / sec")
+plt.title("Sample 1 residuals / sec")
+plt.plot(xData, res11, ".r", label='run 1')
+plt.xlabel("second")
 plt.ylabel("Difference\n(CF-Data)/(CF)/(CF)")
 plt.legend()
 
-
-plt.figure("smpl 2 estb 1k resi")
-plt.title("Sample 2 Esteban 1s data residuals")
-plt.plot(res2E, ".r", label="run 2 Estb 1k")
-plt.xlabel("Data point")
+plt.figure("smpl 2 estb 1k data / sec resi")
+plt.title("Sample 2 (Esteban 1k data )/ sec residuals")
+plt.plot(xEstebansData1k[:50], res2E, ".r", label="run 2 Estb 1k")
+plt.xlabel("second")
 plt.ylabel("Difference\n(CF-Data)/(CF)/(CF)")
 plt.legend()
 
 plt.figure("smpl 3 resi")
 plt.title("Sample 3 residuals")
-plt.plot(res3, ".r", label="run 1")
-plt.xlabel("Data point")
+plt.plot(xData, res3, ".r", label="run 1")
+plt.xlabel("second")
 plt.ylabel("Difference\n(CF-Data)/(CF)")
 plt.legend()
 
 plt.figure("smpl 4 residuals")
 plt.title("Sample 4 residuals")
-plt.plot(res4, ".r", label="3 exp fit")
+plt.plot(xData, res4, ".r", label="3 exp fit")
 plt.xlabel("Data point")
 plt.ylabel("Difference\n(CF-Data)/(CF)")
 plt.legend()
