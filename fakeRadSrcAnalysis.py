@@ -193,6 +193,8 @@ DataCFPlotty(xData, smpl3cap1, XtraCurvy, doubleFit, "Third sample log" , "Sampl
 
 DataCFPlotty(xData, smpl4cap1, XXtraCurvy, fit4, "Fourth sample", "Sample 4 data", "S", "Count", ".c", "-k", "reg")
 
+DataCFPlotty(xData, smpl4cap1, XXtraCurvy, fit4, "Fourth sample log", "Sample 4 data log", "S", "Count", ".c", "-k", "semilogy")
+
 
 
 #residual figs
