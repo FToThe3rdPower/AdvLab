@@ -1,0 +1,70 @@
+#Err analysis by Taylor 8.26, Chi^2 fitting homework
+
+
+#imports
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+#data (arrays must be same size)
+x = np.asarray([10, 40, 70, 100, 130, 160])
+
+y = np.asarray([188, 102, 60, 18, 16, 5])
+yWeights = np.power(np.power(np.sqrt(y), 2), -1)
+
+n = len(x)
+
+
+#funcAlicious
+def Summy(arrayToSum):
+     return np.sum(arrayToSum)
+
+def aSum(dataArrayToSum, weightsArray):
+     arrayToSum = np.zeros_like(dataArrayToSum)
+     for i in range(len(dataArrayToSum)):
+          arrayToSum[i] = dataArrayToSum[i] + weightsArray[i]     
+     return np.sum(arrayToSum)
+
+def aWeightedSqSum(dataArrayToSum, weightsArray):
+     arrayToSum = np.zeros_like(dataArrayToSum)
+     for i in range(len(dataArrayToSum)):
+          arrayToSum[i] = (dataArrayToSum[i])**2 + weightsArray[i]
+     return np.sum(arrayToSum)
+
+def aSqSum(dataArrayToSum, weightsArray):
+     arrayToSum = np.zeros_like(dataArrayToSum)
+     for i in range(len(dataArrayToSum)):
+          arrayToSum[i] = (dataArrayToSum[i])**2 + weightsArray[i]
+     return np.sum(arrayToSum)
+
+def aTimesbSum(aArr, bArr, weightsArray):
+     return np.sum(aArr*bArr*weightsArray)
+
+def lineFunc(m, c, xArr):
+     y = m*xArr+c
+     return y
+
+
+delta = (Summy(yWeights) * aWeightedSqSum(x, yWeights)) - (aSum(x, yWeights))**2
+
+a = ((aWeightedSqSum(x, yWeights) * aSum(y, yWeights)) - (aSum(x, yWeights) * aTimesbSum(x, y, yWeights))) / delta
+
+b = (Summy(yWeights) * aTimesbSum(x,y, yWeights) - (aSum(x, yWeights) * aSum(y, yWeights))) / delta
+
+
+#err stuff
+siggy = np.ones(n, dtype=float)
+for i in range(n):
+     siggy[i] = (y[i]-a-b*x[i])**2
+
+stdDevY = np.sqrt((1/(n-2)) * np.sum(siggy))
+
+
+#plotting
+plt.close("all")
+plt.figure('#5')
+plt.errorbar(x, y, yerr=stdDevY, xerr=None, fmt=".k", ecolor="darkgoldenrod", label="data")
+plt.plot(x, lineFunc((-1)*b, (-1)*a, x), "g", label="χ^2 linear curve fit") #yes, this is the correct order. b=slope, a=intercept
+plt.xlabel("Time (min)")
+plt.ylabel("Emissions " + r"$\nu(t)$")
+plt.legend()
