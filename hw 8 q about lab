@@ -1,0 +1,118 @@
+#!/usr/bin/env python 3.6.8 Anaconda 64-bit
+# -*- coding: utf-8 -*-
+#Created on Sun Oct 24 12:49:35 2021
+#@author: frankgrijalva
+#
+#
+#
+#Err analysis by Taylor 8.x, Chi^2 fitting homework
+
+
+#imports
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+#functions
+def Lambdanator (m, grateSpacing, distToTarget, diffracMax0Dist, diffracLocalMaxDist):
+
+     DM = grateSpacing / m
+     theta0 = diffracMax0Dist / distToTarget
+
+     lamb = ((DM) * (np.cos(np.arctan(theta0)/2) - np.cos(-1*(np.arctan(theta0)/2) + np.arctan(diffracLocalMaxDist/distToTarget))))
+     #np.cos(-1*(np.arctan(theta0)/2) + np.arctan(diffracLocalMaxDist/distToTarget))  =  np.cos(np.arctan(theta0)/2)  -  (1/DM) * lambda
+     return lamb
+
+def linearizer (lamb, grateSpacing, distToTarget, diffracMax0Dist, diffracLocalMaxDist):
+     theta0 = diffracMax0Dist / distToTarget
+     y = np.cos(-1*(np.arctan(theta0)/2) + np.arctan(diffracLocalMaxDist/distToTarget))
+     return y
+
+
+
+#vars
+distToBoard = 8.02 #±.001m
+distFromBeamToRef = 0.85 #±.0005m
+angleOfRef = np.arctan(distFromBeamToRef/distToBoard)/2
+diffGratingSpacing = 1E-3 #≠0, "known" number in m
+
+#array of local maximum spacing data
+mDistDillArr = np.asarray([0.85, 0.92, 0.99, 1.05, 1.1, 1.15, 1.2, 1.24, 1.28, 1.32, 1.36, 1.39, 1.43])
+
+
+#array for ans storage
+mLambDillArr = np.zeros_like(mDistDillArr)
+
+#looping over m
+for i in range(len(mDistDillArr)):
+     #feeding the func "1" for the 0th max so it doesn't divide by 0
+     if i == 0:
+          mLambDillArr[0] = Lambdanator((1), diffGratingSpacing, distToBoard, distFromBeamToRef, mDistDillArr[1])
+     else:
+          mLambDillArr[i] = Lambdanator((i), diffGratingSpacing, distToBoard, distFromBeamToRef, mDistDillArr[i])
+     print("\n M"+str(i), "dist. from M0:", mDistDillArr[i], "\n calculated lambda:", mLambDillArr[i])
+
+
+#checking results
+meanWavelength = np.mean(mLambDillArr)*1E9
+print("\n\n\nMean wavelength:", meanWavelength, "nm")
+
+
+
+
+
+
+
+#data (arrays must be same size
+x = range(1,len(mDistDillArr)+1)
+y = linearizer(meanWavelength, diffGratingSpacing, distToBoard, distFromBeamToRef, mDistDillArr)
+n = len(x)
+
+
+#funcAlicious
+def aSum(arrayToSum):
+      return np.sum(arrayToSum)
+
+def aSqSum(arrayToSum):
+      return np.sum(np.power(arrayToSum, 2))
+
+def aTimesbSum(aArr, bArr):
+      return np.sum(aArr*bArr)
+
+def lineFunc(m, c, xArr):
+      y = m*xArr+c
+      return y
+
+
+delta = (n * aSqSum(x)) - (aSum(x))**2
+
+a = ((aSqSum(x) * aSum(y)) - (aSum(x) * aTimesbSum(x, y))) / delta
+
+b = (n * aTimesbSum(x,y) - (aSum(x) * aSum(y))) / delta
+
+
+#err stuff
+siggy = np.ones(n, dtype=float)
+for i in range(n):
+      siggy[i] = (y[i]-a-b*x[i])**2
+
+stdDevY = np.sqrt((1/(n-2)) * np.sum(siggy))
+
+
+# #plotting
+# plt.close("all")
+# plt.figure('#5')
+# plt.errorbar(x, y, yerr=stdDevY, xerr=None, fmt=".k", ecolor="coral", label="data")
+# plt.plot(x, lineFunc(b, a, x), "g", label="χ^2 linear curve fit") #yes, this is the correct order. b=slope, a=intercept
+# plt.xlabel("x")
+# plt.ylabel("y")
+# plt.legend()
+
+plt.figure("#6")
+plt.title("Linearized Wavelengh lab")
+plt.errorbar(range(1,len(mDistDillArr)+1), linearizer(meanWavelength, diffGratingSpacing, distToBoard, distFromBeamToRef, mDistDillArr), yerr=siggy, xerr=None, fmt=".r", ecolor="dodgerblue", label="Data")
+plt.plot(range(1,len(mDistDillArr)+1), lineFunc(b, a, range(1,len(mDistDillArr)+1)), "g", label="χ^2 linear curve fit") #yes, this is the correct order. b=slope, a=intercept
+plt.xlabel("m")
+plt.ylabel("cos(Theta_m)")
+plt.legend()
