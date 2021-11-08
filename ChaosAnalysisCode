@@ -1,0 +1,148 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Oct 26 12:36:51 2021
+
+@author: xainx (Ryan Neuman), modified by Trey Grijalva on 1 Nov
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+#Function to scan the data for the frequency of oscillations and collisions
+def DataScanner(t, pos, vel, sig, halfWinLen, step):
+
+    #required initial conditions
+    freq = 0
+    ret = []
+
+    #keeping my head on straight
+    scanWinFwdLen = halfWinLen #(int) indicies to include in window forward in time, should probably be even
+    scanWinBckLen = halfWinLen #(int) indicies to include in window backward in time, should probably be even
+
+    #Establishing the window
+    for j in range(scanWinBckLen, len(t) - scanWinFwdLen, step):
+        #Empty list for to fill next
+        timepoints = []
+        #Scanning for signal changes to save the time index
+        for wi in range(j - scanWinBckLen, j + scanWinFwdLen - 1):
+            if (np.sign(sig[wi]) != np.sign(sig[wi+1])):
+                timepoints.append(t[wi])
+        #print(timepoints)
+
+        #finding the frequecies via 1/(half period count)
+        perOver2 = np.mean(np.diff(np.asarray(timepoints)))
+        freq = (2.0 * perOver2)**-1
+
+        #position peak index and freq storing
+        for wi in range(j - scanWinBckLen, j + scanWinFwdLen - 1):
+            if (vel[wi] <= 0 and vel[wi+1] >= 0):#velocity crossed zero so pos has peaked
+                ret.append((wi, freq, pos[wi]))
+    return ret
+
+
+#File handling
+##(you'll need to correct the path if you aren't on a unix sys with the data
+##files directly adjacent to the code file
+
+###20-40 Hz data
+freqSweepData1 = 'sweepUP_20-40hz_run1.lvm'
+freqSweepData2 = "sweepUP_20-40hz_run2.lvm"
+freqSweepData3 = 'sweepDN_40-20hz_run1.lvm'
+freqSweepData4 = "sweepDN_40-20hz_run2.lvm"
+
+###120-160 Hz data
+freqSweepData5 = "sweepUP_120-160hz_run1.lvm"
+freqSweepData6 = "sweepUP_120-160hz_run2.lvm"
+
+###132-150 Hz data
+freqSweepData7 = "sweepUP_132-150hz_run1.lvm"
+
+
+#selecting the data for this run
+data = np.loadtxt(freqSweepData6, skiprows=23, delimiter=',')
+
+#slicing the raw data array into properly named arrays
+times = data[:, 0]
+positions = data[:, 1]
+velocities = data[:, 2]
+signal = data[:, 3]
+
+
+
+
+
+#!!!Knobs to tweak!!!
+bifPlotMin = 500      #best for set 2: 0
+bifPlotMax = 1980     #best for set 2: 625
+timeStart = 3500      #best for set 2: 1000
+timeEnd = 14500       #best for set 2: 1250
+peakDetStart = 450
+peakDetStop = 1880
+winHlfWidth = 150
+stride = 150
+
+
+
+
+
+#Data processing
+#Actually calling the function to scan the data
+pdata = DataScanner(times, positions, velocities, signal, winHlfWidth, stride)
+
+#Making array of peak data
+peaks = np.zeros((len(pdata), 3))
+for i in range(len(pdata)):
+    for k in range(3):
+        peaks[i, k] = pdata[i][k]
+
+
+
+#Plotting
+## HL color code: Red represents transient modes that didn't die before data was taken,
+## Green reps clear bifurcation, and magenta reps chaotic transitions we couldn't resolve
+## best for set 2: plt.axvspan(24.75, 25.2, color="g", alpha=.4)
+plt.close("all")
+
+
+plt.figure("Bifurcation Diagram")
+plt.suptitle("Chaotic ball bounce height")
+plt.title("Voltage ∝ position in lieu of a real ball with actual position", fontsize=7)
+plt.scatter(peaks[bifPlotMin:bifPlotMax, 1], peaks[bifPlotMin:bifPlotMax, 2], s=.2)
+#first Bif HL
+plt.axvspan(139.6, 148.4, color="g", alpha=.1)
+#jump to second Bif that's interrupted HL
+plt.axvspan(150.0, 151.95, color="c", alpha=.1)
+plt.axvspan(152.1, 155.0, color="c", alpha=.1)
+#transient mode pollution HL
+plt.axvspan(132.0, 132.3, color="r", alpha=.1)
+plt.axvspan(151.975, 152.075, color="r", alpha=.1)
+plt.axvspan(148.4, 150.0, color="m", alpha=.1)
+plt.axvspan(155.1, 160.1, color="m", alpha=.1)
+plt.xlabel('Floor Driving frequency [Hz]')
+plt.ylabel('Height of ball \n(Volts)')
+
+
+
+plt.figure("Ball P & V vs T")
+plt.suptitle("Ball Position & Velocity vs Time")
+plt.title("Voltage ∝ position in lieu of a real ball with actual position", fontsize=7)
+plt.plot(times[timeStart:timeEnd], -1*velocities[timeStart:timeEnd], "g", label="Velocities")
+plt.plot(times[timeStart:timeEnd], positions[timeStart:timeEnd], 'r', alpha=.5, label="Ball position")
+plt.scatter(times[peaks[peakDetStart:peakDetStop, 0].astype(int)], peaks[peakDetStart:peakDetStop, 2], c="b", s=2, label="Peak detected")
+#first Bif HL
+plt.axvspan(15.0, 21.6, color="g", alpha=.1)
+#jump to second Bif that's interrupted HL
+plt.axvspan(22.5, 24.3, color="c", alpha=.1)
+plt.axvspan(24.5, 27.0, color="c", alpha=.1)
+# #transient mode pollution HL
+plt.axvspan(8.9, 9.2, color="r", alpha=.1)
+plt.axvspan(24.3, 24.5, color="r", alpha=.1)
+plt.axvspan(21.6, 22.5, color="m", alpha=.1)
+plt.axvspan(27.0, 29.0, color="m", alpha=.1)
+
+plt.xlabel("Time (s)")
+plt.ylabel("Height of ball \n(Volts)")
+plt.legend(bbox_to_anchor=(1.0, 1.0))
+
+plt.show()
