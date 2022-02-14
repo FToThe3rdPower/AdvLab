@@ -1,0 +1,10 @@
+name: Babysteps
+
+on: push
+
+jobs:
+ job1:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Uno
+      run: echo Hello Wolrd - this is my first CI CD job & step
